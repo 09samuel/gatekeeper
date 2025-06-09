@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="GateKeeperKt" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="$PROJECT_DIR$/../../../../Program Files/Java/jdk-17" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <envs>
+      <env name="DB_PASSWORD" value="root" />
+      <env name="DB_USERNAME" value="postgres" />
+      <env name="JWT_SECRET_BASE64" value="ZGhiYXMgeTk4ZTc4OXQ4NzNkY09OQVVYTkVVMHVpQjIzNw==" />
+      <env name="POSTGRES_CONNECTION_STRING" value="jdbc:postgresql://localhost:5432/gatekeeper" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="com.sastudios.gatekeeper.GatekeeperApplicationKt" />
+    <module name="gatekeeper.main" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
