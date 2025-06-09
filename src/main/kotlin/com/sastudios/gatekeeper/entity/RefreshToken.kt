@@ -11,9 +11,6 @@ data class RefreshToken(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-//    @Column(name = "user_id", nullable = false)
-//    val userId: Long,
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     val user: User,
