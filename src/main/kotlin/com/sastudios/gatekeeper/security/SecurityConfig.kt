@@ -1,6 +1,5 @@
 package com.sastudios.gatekeeper.security
 
-
 import jakarta.servlet.DispatcherType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

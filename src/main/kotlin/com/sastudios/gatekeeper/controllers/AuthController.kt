@@ -5,7 +5,6 @@ import com.sastudios.gatekeeper.dto.AuthRequestDto
 import com.sastudios.gatekeeper.dto.UserResponseDto
 import com.sastudios.gatekeeper.security.AuthService
 import jakarta.validation.Valid
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -47,10 +46,5 @@ class AuthController(
         @RequestBody body: RefreshRequest
     ) {
         return authService.logout(body.refreshToken)
-    }
-
-    @PostMapping("/check")
-    fun check() : String {
-        return "check"
     }
 }
