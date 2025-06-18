@@ -5,7 +5,6 @@ import com.sastudios.gatekeeper.dto.CollaboratorDto
 import com.sastudios.gatekeeper.dto.CreateDocumentRequestDto
 import com.sastudios.gatekeeper.dto.DocumentResponseDto
 import com.sastudios.gatekeeper.dto.UpdateDocumentRequestDto
-import com.sastudios.gatekeeper.dto.UserResponseDto
 import com.sastudios.gatekeeper.entity.CollaboratorRole
 import com.sastudios.gatekeeper.entity.Document
 import com.sastudios.gatekeeper.entity.DocumentCollaborator
@@ -15,8 +14,10 @@ import com.sastudios.gatekeeper.repository.DocumentRepository
 import com.sastudios.gatekeeper.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
 
+@Service
 class DocumentService(
     private val jwtService: JwtService,
     @Autowired private val userRepository: UserRepository,
