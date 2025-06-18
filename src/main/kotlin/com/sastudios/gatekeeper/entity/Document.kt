@@ -36,3 +36,12 @@ data class Document(
 
     val createdAt: Instant = Instant.now()
 )
+{
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Document) return false
+        return id == other.id
+    }
+
+    override fun hashCode(): Int = id.hashCode()
+}

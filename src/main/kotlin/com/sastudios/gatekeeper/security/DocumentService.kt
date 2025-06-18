@@ -56,10 +56,10 @@ class DocumentService(
 
     fun getUserDocuments(token: String): List<DocumentResponseDto> {
         val user = getUserFromToken(token)
-        val documents = documentRepository.findByOwnerOrCollaboratorsContaining(user, user)
+        val documents = documentRepository.findAllByOwnerOrCollaborator(user)
         return documents.map { it.toDto() }
-    }
 
+    }
 
     fun getDocumentById(id: Long, token: String): DocumentResponseDto {
         val user = getUserFromToken(token)
