@@ -158,7 +158,6 @@ class DocumentService(
             role = role
         )
 
-
         doc.collaborators.add(collaborator)
         documentRepository.save(doc)
 
@@ -221,7 +220,6 @@ private fun Document.toDto(): DocumentResponseDto {
 fun DocumentCollaborator.toDto(): CollaboratorDto {
     return CollaboratorDto(
         userId = this.user.id ?: throw IllegalStateException("User ID is null"),
-        email = this.user.email,
         role = this.role.name
     )
 }

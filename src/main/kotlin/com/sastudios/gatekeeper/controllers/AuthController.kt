@@ -1,7 +1,8 @@
 package com.sastudios.gatekeeper.controllers
 
 
-import com.sastudios.gatekeeper.dto.AuthRequestDto
+import com.sastudios.gatekeeper.dto.LoginRequestDto
+import com.sastudios.gatekeeper.dto.RegisterRequestDto
 import com.sastudios.gatekeeper.dto.RefreshRequestDto
 import com.sastudios.gatekeeper.dto.UserResponseDto
 import com.sastudios.gatekeeper.repository.UserRepository
@@ -13,7 +14,6 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
@@ -27,7 +27,7 @@ class AuthController(
 
     @PostMapping("/register")
     fun register(
-        @Valid @RequestBody body: AuthRequestDto
+        @Valid @RequestBody body: RegisterRequestDto
     ): UserResponseDto {
         val registeredUser = authService.register(body.email, body.password, body.name)
         return UserResponseDto(registeredUser.id, registeredUser.email, registeredUser.name)
@@ -35,7 +35,7 @@ class AuthController(
 
     @PostMapping("/login")
     fun login(
-        @RequestBody body: AuthRequestDto
+        @RequestBody body: LoginRequestDto
     ): AuthService.TokenPair {
         return authService.login(body.email, body.password)
     }

@@ -3,7 +3,7 @@ package com.sastudios.gatekeeper.dto
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Pattern
 
-data class AuthRequestDto(
+data class RegisterRequestDto(
     @field:Email(message = "Invalid email format.")
     val email: String,
     @field:Pattern(
