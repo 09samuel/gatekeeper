@@ -194,19 +194,32 @@ class DocumentService(
 
 }
 
-
-
-private fun Document.toDto(): DocumentResponseDto {
+fun Document.toDto(): DocumentResponseDto {
     return DocumentResponseDto(
         id = this.id,
         title = this.title,
         content = this.content,
         ownerId = this.owner.id ?: throw IllegalStateException("Owner ID is null"),
-        collaborators = this.collaborators.map { it.toDto() },
+        collaborators = this.collaborators.map {
+            CollaboratorDto(
+                userId = it.user.id ?: throw IllegalStateException("User ID is null"),
+                role = it.role.name
+            )
+        },
         createdAt = this.createdAt
     )
 }
 
+//private fun Document.toDto(): DocumentResponseDto {
+//    return DocumentResponseDto(
+//        id = this.id,
+//        title = this.title,
+//        content = this.content,
+//        ownerId = this.owner.id ?: throw IllegalStateException("Owner ID is null"),
+//        collaborators = this.collaborators.map { it.toDto() },
+//        createdAt = this.createdAt
+//    )
+//}
 
 //fun User.toDtoWithRole(role: CollaboratorRole): UserResponseDto {
 //    return UserResponseDto(
