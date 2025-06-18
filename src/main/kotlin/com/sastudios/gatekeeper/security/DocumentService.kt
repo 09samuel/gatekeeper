@@ -208,14 +208,14 @@ private fun Document.toDto(): DocumentResponseDto {
 }
 
 
-fun User.toDtoWithRole(role: CollaboratorRole): UserResponseDto {
-    return UserResponseDto(
-        id = this.id ?: throw IllegalStateException("User ID is null"),
-        email = this.email,
-        name = this.name,
-        role = role.name
-    )
-}
+//fun User.toDtoWithRole(role: CollaboratorRole): UserResponseDto {
+//    return UserResponseDto(
+//        id = this.id ?: throw IllegalStateException("User ID is null"),
+//        email = this.email,
+//        name = this.name,
+//        role = role.name
+//    )
+//}
 
 fun DocumentCollaborator.toDto(): CollaboratorDto {
     return CollaboratorDto(
