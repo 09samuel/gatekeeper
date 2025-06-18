@@ -1,7 +1,5 @@
 package com.sastudios.gatekeeper.security
 
-
-
 import com.sastudios.gatekeeper.entity.RefreshToken
 import com.sastudios.gatekeeper.entity.User
 import com.sastudios.gatekeeper.repository.RefreshTokenRepository
@@ -10,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
 import org.springframework.security.authentication.BadCredentialsException
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
@@ -29,7 +28,7 @@ class AuthService(
         val refreshToken: String
     )
 
-    fun register(email: String, password: String): User {
+    fun register(email: String, password: String, name: String): User {
         val user = userRepository.findByEmail(email.trim())
         if (user != null) {
             throw ResponseStatusException(HttpStatus.CONFLICT, "A user with that email already exists.")
@@ -38,6 +37,7 @@ class AuthService(
             User(
                 email = email,
                 hashedPassword = hashEncoder.encode(password),
+                name = name
             )
         )
     }
@@ -108,18 +108,18 @@ class AuthService(
     }
 
     @Transactional
-    fun logout(refreshToken: String) {
-        if (!jwtService.validateRefreshToken(refreshToken)) {
+    fun logout(token: String) {
+        if (!jwtService.validateRefreshToken(token)) {
             throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token.")
         }
 
-        val userIdStr = jwtService.getUserIdFromToken(refreshToken)
+        val userIdStr = jwtService.getUserIdFromToken(token)
         val userId = userIdStr.toLongOrNull() ?: throw ResponseStatusException(
             HttpStatus.UNAUTHORIZED,
             "Invalid user ID in token."
         )
 
-        val hashed = hashToken(refreshToken)
+        val hashed = hashToken(token)
         val storedToken = refreshTokenRepository.findByUserIdAndHashedToken(userId, hashed)
             ?: throw ResponseStatusException(
                 HttpStatus.UNAUTHORIZED,
@@ -135,7 +135,6 @@ class AuthService(
 
         refreshTokenRepository.deleteByUserIdAndHashedToken(userId, hashed)
     }
-
 
     private fun storeRefreshToken(user: User, rawRefreshToken: String) {
         val hashed = hashToken(rawRefreshToken)

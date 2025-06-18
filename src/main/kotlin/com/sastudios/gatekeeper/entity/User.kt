@@ -14,6 +14,9 @@ data class User(
     @Column(nullable = false, unique = true)
     val email: String,
 
+    @Column(name = "name", nullable = false)
+    val name: String,
+
     @Column(name = "hashed_password", nullable = false)
     val hashedPassword: String,
 
@@ -21,5 +24,5 @@ data class User(
     val createdAt: Instant = Instant.now(),
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val tokens: MutableList<RefreshToken> = mutableListOf()
+    val tokens: MutableList<RefreshToken> = mutableListOf(),
 )

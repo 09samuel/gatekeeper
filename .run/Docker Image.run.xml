@@ -16,7 +16,7 @@
             </DockerEnvVarImpl>
             <DockerEnvVarImpl>
               <option name="name" value="JWT_SECRET_BASE64" />
-              <option name="value" value="ZGhiYXMgeTk4ZTc4OXQ4NzNkY09OQVVYTkVVMHVpQjIzNw\=\=" />
+              <option name="value" value="U2VjdXJlU2VjcmV0S2V5Rm9ySldUU2lnbmluZzEyMzQ1Ng==" />
             </DockerEnvVarImpl>
             <DockerEnvVarImpl>
               <option name="name" value="POSTGRES_CONNECTION_STRING" />
@@ -24,6 +24,15 @@
             </DockerEnvVarImpl>
           </list>
         </option>
+        <option name="portBindings">
+          <list>
+            <DockerPortBindingImpl>
+              <option name="containerPort" value="8080" />
+              <option name="hostPort" value="8080" />
+            </DockerPortBindingImpl>
+          </list>
+        </option>
+        <option name="showCommandPreview" value="true" />
       </settings>
     </deployment>
     <method v="2" />

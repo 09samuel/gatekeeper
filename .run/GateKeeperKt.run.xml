@@ -5,7 +5,7 @@
     <envs>
       <env name="DB_PASSWORD" value="root" />
       <env name="DB_USERNAME" value="postgres" />
-      <env name="JWT_SECRET_BASE64" value="ZGhiYXMgeTk4ZTc4OXQ4NzNkY09OQVVYTkVVMHVpQjIzNw==" />
+      <env name="JWT_SECRET_BASE64" value="U2VjdXJlU2VjcmV0S2V5Rm9ySldUU2lnbmluZzEyMzQ1Ng==" />
       <env name="POSTGRES_CONNECTION_STRING" value="jdbc:postgresql://localhost:5432/gatekeeper" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="com.sastudios.gatekeeper.GatekeeperApplicationKt" />
