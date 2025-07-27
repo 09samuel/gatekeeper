@@ -28,6 +28,9 @@ class SecurityConfig(private val jwtAuthFilter: JwtAuthFilter) {
                     .permitAll()
                     .requestMatchers("/gatekeeper/auth/**")
                     .permitAll()
+                    .requestMatchers("/actuator/**")
+                    .permitAll()
+                    .requestMatchers("/ws/**").permitAll()
                     .dispatcherTypeMatchers(
                         DispatcherType.ERROR,
                         DispatcherType.FORWARD

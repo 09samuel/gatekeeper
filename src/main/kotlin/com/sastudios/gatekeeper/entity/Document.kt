@@ -24,8 +24,8 @@ data class Document(
     @Column(nullable = false)
     var title: String = "",
 
-    @Column(columnDefinition = "TEXT")
-    var content: String = "",
+    @Column(name = "content_url", nullable = false)
+    var contentUrl: String = "", // S3 URL
 
     @ManyToOne
     @JoinColumn(name = "owner_id")
@@ -34,9 +34,12 @@ data class Document(
     @OneToMany(mappedBy = "document", cascade = [CascadeType.ALL], orphanRemoval = true)
     val collaborators: MutableSet<DocumentCollaborator> = mutableSetOf(),
 
-    val createdAt: Instant = Instant.now()
-)
-{
+    val createdAt: Instant = Instant.now(),
+
+    var currentRevision: Int = 0,
+
+    var compactedRevision: Int = 0
+) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Document) return false

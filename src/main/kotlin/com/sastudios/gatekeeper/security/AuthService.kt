@@ -7,11 +7,14 @@ import com.sastudios.gatekeeper.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
+import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
+import org.springframework.web.servlet.resource.HttpResource
+import java.net.http.HttpResponse
 import java.security.MessageDigest
 import java.time.Instant
 import java.util.Base64
@@ -107,34 +110,34 @@ class AuthService(
         )
     }
 
-    @Transactional
-    fun logout(token: String) {
-        if (!jwtService.validateRefreshToken(token)) {
-            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token.")
-        }
-
-        val userIdStr = jwtService.getUserIdFromToken(token)
-        val userId = userIdStr.toLongOrNull() ?: throw ResponseStatusException(
-            HttpStatus.UNAUTHORIZED,
-            "Invalid user ID in token."
-        )
-
-        val hashed = hashToken(token)
-        val storedToken = refreshTokenRepository.findByUserIdAndHashedToken(userId, hashed)
-            ?: throw ResponseStatusException(
-                HttpStatus.UNAUTHORIZED,
-                "Refresh token not recognized (maybe used or expired?)"
-            )
-
-        if (storedToken.expiresAt.isBefore(Instant.now())) {
-            throw ResponseStatusException(
-                HttpStatus.UNAUTHORIZED,
-                "Refresh token has expired"
-            )
-        }
-
-        refreshTokenRepository.deleteByUserIdAndHashedToken(userId, hashed)
-    }
+//    @Transactional
+//    fun logout(token: String) {
+//        if (!jwtService.validateAccessToken(token)) {
+//            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid access token.")
+//        }
+//
+//        val userIdStr = jwtService.getUserIdFromToken(token)
+//        val userId = userIdStr.toLongOrNull() ?: throw ResponseStatusException(
+//            HttpStatus.UNAUTHORIZED,
+//            "Invalid user ID in token."
+//        )
+//
+//        val hashed = hashToken(token)
+//        val storedToken = refreshTokenRepository.findByUserIdAndHashedToken(userId, hashed)
+//            ?: throw ResponseStatusException(
+//                HttpStatus.UNAUTHORIZED,
+//                "Refresh token not recognized (maybe used or expired?)"
+//            )
+//
+//        if (storedToken.expiresAt.isBefore(Instant.now())) {
+//            throw ResponseStatusException(
+//                HttpStatus.UNAUTHORIZED,
+//                "Refresh token has expired"
+//            )
+//        }
+//
+//        refreshTokenRepository.deleteByUserIdAndHashedToken(userId, hashed)
+//    }
 
     private fun storeRefreshToken(user: User, rawRefreshToken: String) {
         val hashed = hashToken(rawRefreshToken)

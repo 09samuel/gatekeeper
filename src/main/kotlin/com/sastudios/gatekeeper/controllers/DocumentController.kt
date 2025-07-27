@@ -5,7 +5,9 @@ import com.sastudios.gatekeeper.dto.CollaboratorDto
 import com.sastudios.gatekeeper.dto.CreateDocumentRequestDto
 import com.sastudios.gatekeeper.dto.DocumentResponseDto
 import com.sastudios.gatekeeper.dto.UpdateDocumentRequestDto
-import com.sastudios.gatekeeper.security.DocumentService
+import com.sastudios.gatekeeper.model.Operation
+import com.sastudios.gatekeeper.service.DocumentService
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -19,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/gatekeeper/document")
-class DocumentController (private val documentService: DocumentService){
+class DocumentController (private val documentService: DocumentService, private val redis: StringRedisTemplate){
 
     @PostMapping
     fun createDoc(
@@ -38,12 +40,12 @@ class DocumentController (private val documentService: DocumentService){
         @RequestHeader("Authorization") token: String
     ): DocumentResponseDto = documentService.getDocumentById(id, token)
 
-    @PutMapping("/{id}")
-    fun updateDoc(
-        @PathVariable id: Long,
-        @RequestBody request: UpdateDocumentRequestDto,
-        @RequestHeader("Authorization") token: String
-    ): DocumentResponseDto = documentService.updateDocument(id, request, token)
+//    @PutMapping("/{id}")
+//    fun updateDoc(
+//        @PathVariable id: Long,
+//        @RequestBody request: UpdateDocumentRequestDto,
+//        @RequestHeader("Authorization") token: String
+//    ): DocumentResponseDto = documentService.updateDocument(id, request, token)
 
     @DeleteMapping("/{id}")
     fun deleteDoc(
@@ -73,4 +75,18 @@ class DocumentController (private val documentService: DocumentService){
         @PathVariable userId: Long,
         @RequestHeader("Authorization") token: String
     ) = documentService.removeCollaborator(id, userId, token)
+
+//    @PostMapping("/{docId}/change")
+//    fun change(@PathVariable docId: String, @RequestBody req: Operation): Operation =
+//        documentService.applyOperation(req.copy(docId = docId))
+
+
+//    @GetMapping("/{docId}")
+//    fun get(@PathVariable docId: String) = documentService.getState(docId)
+
+    @GetMapping("/{docId}/owner")
+    fun getOwner(@PathVariable docId: String): Map<String, String> {
+        val owner = redis.opsForValue().get("doc:$docId") ?: "none"
+        return mapOf("docId" to docId, "owner" to owner)
+    }
 }

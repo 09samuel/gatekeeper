@@ -1,7 +1,6 @@
 package com.sastudios.gatekeeper.repository
 
 import com.sastudios.gatekeeper.entity.Document
-import com.sastudios.gatekeeper.entity.DocumentCollaborator
 import com.sastudios.gatekeeper.entity.User
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
@@ -20,5 +19,17 @@ interface DocumentRepository : JpaRepository<Document, Long>{
 """)
     fun findAllByOwnerOrCollaborator(@Param("user") user: User): List<Document>
 
+
+    @Query("""
+    UPDATE documents
+    SET currentRevision = currentRevision + 1
+    WHERE id = :id
+    RETURNING currentRevision
+""", nativeQuery = true)
+    fun incrementAndGetRevision(id: Long): Int
+
+
+    @Query("SELECT d.currentRevision FROM Document d WHERE d.id = :id")
+    fun findLatestRevisionById(@Param("id") id: Long): Int?
 
 }

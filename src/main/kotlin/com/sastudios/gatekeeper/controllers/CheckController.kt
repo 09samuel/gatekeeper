@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/gatekeeper")
+//@RequestMapping("/gatekeeper")
 class CheckController {
     @GetMapping("/check")
     fun check(): ResponseEntity<String> {

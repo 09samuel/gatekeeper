@@ -1,28 +1,38 @@
-package com.sastudios.gatekeeper.security
+package com.sastudios.gatekeeper.service
 
 import com.sastudios.gatekeeper.dto.AddCollaboratorRequestDto
 import com.sastudios.gatekeeper.dto.CollaboratorDto
 import com.sastudios.gatekeeper.dto.CreateDocumentRequestDto
 import com.sastudios.gatekeeper.dto.DocumentResponseDto
 import com.sastudios.gatekeeper.dto.UpdateDocumentRequestDto
+import com.sastudios.gatekeeper.entity.CassandraOperation
+
 import com.sastudios.gatekeeper.entity.CollaboratorRole
 import com.sastudios.gatekeeper.entity.Document
 import com.sastudios.gatekeeper.entity.DocumentCollaborator
 import com.sastudios.gatekeeper.entity.User
+import com.sastudios.gatekeeper.model.Operation
+import com.sastudios.gatekeeper.repository.CassandraOperationRepository
+
 import com.sastudios.gatekeeper.repository.DocumentCollaboratorRepository
 import com.sastudios.gatekeeper.repository.DocumentRepository
 import com.sastudios.gatekeeper.repository.UserRepository
+import com.sastudios.gatekeeper.security.JwtService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
 
 @Service
 class DocumentService(
     private val jwtService: JwtService,
+    private val s3Service: S3Service,
     @Autowired private val userRepository: UserRepository,
     @Autowired private val documentRepository: DocumentRepository,
-    @Autowired private val documentCollaboratorRepository: DocumentCollaboratorRepository
+    @Autowired private val documentCollaboratorRepository: DocumentCollaboratorRepository,
+    private val cassRepo: CassandraOperationRepository,
+    private val transformer: SimpleTextTransformer
 ) {
 
     fun createDocument(request: CreateDocumentRequestDto, token: String): DocumentResponseDto {
@@ -36,21 +46,29 @@ class DocumentService(
             ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")
         }
 
-        val doc = Document(
+        // Step 1: Save doc without content URL
+        val tempDoc = Document(
             title = request.title,
-            content = request.content ?: "",
+            contentUrl = "", // Will be set after S3 upload
             owner = user
         )
+        val saved = documentRepository.save(tempDoc)
 
-        val saved = documentRepository.save(doc)
+        // Step 2: Upload content to S3 and get URL
+        val content = request.content ?: ""
+        val contentUrl = s3Service.uploadPlainText(saved.id, content)
+
+        // Step 3: Update doc with S3 URL
+        saved.contentUrl = contentUrl
+        val finalSaved = documentRepository.save(saved)
 
         return DocumentResponseDto(
-            id = saved.id,
-            title = saved.title,
-            content = saved.content,
-            ownerId = saved.owner.id,
-            createdAt = saved.createdAt,
-            collaborators = saved.collaborators.map { it.toDto() },
+            id = finalSaved.id,
+            title = finalSaved.title,
+            contentUrl = finalSaved.contentUrl,
+            ownerId = finalSaved.owner.id,
+            createdAt = finalSaved.createdAt,
+            collaborators = finalSaved.collaborators.map { it.toDto() }
         )
     }
 
@@ -74,28 +92,72 @@ class DocumentService(
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "You are neither the owner nor a collaborator")
         }
 
-        return document.toDto()
+        val content = s3Service.getPlainText(document.contentUrl)
+
+        return document.toDto().copy(content = content)
+
     }
 
+//    fun getDocumentById(id: Long, token: String): DocumentResponseDto {
+//        val user = getUserFromToken(token)
+//        val document = documentRepository.findById(id).orElseThrow {
+//            ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found")
+//        }
+//
+//        val isOwner = document.owner.id == user.id
+//        val isCollaborator = document.collaborators.any { it.user.id == user.id }
+//
+//        if (!isOwner && !isCollaborator) {
+//            throw ResponseStatusException(HttpStatus.FORBIDDEN, "You are neither the owner nor a collaborator")
+//        }
+//
+//        val content = s3Service.getPlainText(document.contentUrl)
+//
+//        val history = cassRepo.findByDocIdAndRevisionGreaterThan(id.toString(), document.compactedRevision)
+//            .map { Operation(it.docId, it.userId, it.baseRevision, it.revision, it.delta) }
+//
+//        return DocumentResponseDto(
+//            id = document.id,
+//            title = document.title,
+//            content = content,
+//            ownerId = document.owner.id!!,
+//            collaborators = document.collaborators.map { it.toDto() },
+//            createdAt = document.createdAt,
+//            operations = history,
+//        )
+//    }
 
 
-    fun updateDocument(id: Long, request: UpdateDocumentRequestDto, token: String): DocumentResponseDto {
-        val user = getUserFromToken(token)
-        val document = documentRepository.findById(id).orElseThrow {
-            ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found")
-        }
 
-        val collab = documentCollaboratorRepository.findByDocumentIdAndUserId(document.id, user.id!!)
-        val isEditor = collab?.role == CollaboratorRole.EDITOR
+//    fun getState(docId: String): Pair<String, List<Operation>> {
+//        val docId = docId.toLongOrNull() ?: throw IllegalArgumentException("Invalid docId")
+//        val meta = documentRepository.findById(docId).orElseThrow()
+//
+//        // fetch from S3 + pending ops
+//        val history = cassRepo.findByDocIdAndRevisionGreaterThan(docId.toString(), meta.compactedRevision)
+//            .map { Operation(it.docId, it.userId, it.baseRevision, it.revision, it.delta) }
+//        return Pair("S3-content-placeholder", history)
+//    }
 
-        if (document.owner.id != user.id && !isEditor) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have edit permission")
-        }
 
-        document.title = request.title ?: document.title
-        document.content = request.content ?: document.content
-        return documentRepository.save(document).toDto()
-    }
+
+//    fun updateDocument(id: Long, request: UpdateDocumentRequestDto, token: String): DocumentResponseDto {
+//        val user = getUserFromToken(token)
+//        val document = documentRepository.findById(id).orElseThrow {
+//            ResponseStatusException(HttpStatus.NOT_FOUND, "Document not found")
+//        }
+//
+//        val collab = documentCollaboratorRepository.findByDocumentIdAndUserId(document.id, user.id!!)
+//        val isEditor = collab?.role == CollaboratorRole.EDITOR
+//
+//        if (document.owner.id != user.id && !isEditor) {
+//            throw ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have edit permission")
+//        }
+//
+//        document.title = request.title ?: document.title
+//        document.content = request.content ?: document.content
+//        return documentRepository.save(document).toDto()
+//    }
 
     fun deleteDocument(id: Long, token: String) {
         val user = getUserFromToken(token)
@@ -183,7 +245,6 @@ class DocumentService(
         documentRepository.save(doc)
     }
 
-
     private fun getUserFromToken(token: String): User {
         val userId = jwtService.getUserIdFromToken(token).toLongOrNull()
             ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token")
@@ -192,13 +253,32 @@ class DocumentService(
         }
     }
 
+//    @Transactional
+//    fun applyOperation(op: Operation): Operation {
+//        val docId = op.docId.toLongOrNull() ?: throw IllegalArgumentException("Invalid docId")
+//        val meta = documentRepository.findById(docId).orElseThrow()
+//
+//        val history = cassRepo.findByDocIdAndRevisionGreaterThan(op.docId, op.baseRevision)
+//            .map { Operation(it.docId, it.userId, it.baseRevision, it.revision, it.delta) }
+//        val transformed = transformer.transform(op, history)
+//        val cass = CassandraOperation(
+//            transformed.docId, transformed.revision, transformed.userId,
+//            transformed.baseRevision, transformed.delta
+//        )
+//        cassRepo.save(cass)
+//        meta.currentRevision = transformed.revision
+//        documentRepository.save(meta)
+//        return transformed
+//    }
+
+
 }
 
 fun Document.toDto(): DocumentResponseDto {
     return DocumentResponseDto(
         id = this.id,
         title = this.title,
-        content = this.content,
+        contentUrl = this.contentUrl,
         ownerId = this.owner.id ?: throw IllegalStateException("Owner ID is null"),
         collaborators = this.collaborators.map {
             CollaboratorDto(

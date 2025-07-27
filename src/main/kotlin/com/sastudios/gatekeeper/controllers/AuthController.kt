@@ -10,6 +10,7 @@ import com.sastudios.gatekeeper.security.AuthService
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -36,8 +37,10 @@ class AuthController(
     @PostMapping("/login")
     fun login(
         @RequestBody body: LoginRequestDto
-    ): AuthService.TokenPair {
-        return authService.login(body.email, body.password)
+    ): ResponseEntity<AuthService.TokenPair> {
+        val tokenPair  = authService.login(body.email, body.password)
+        return ResponseEntity.ok(tokenPair)
+
     }
 
     @PostMapping("/refresh")
@@ -47,12 +50,12 @@ class AuthController(
         return authService.refresh(body.refreshToken)
     }
 
-    @PostMapping("/logout")
-    fun logout(
-        @RequestBody body: RefreshRequestDto
-    ) {
-        return authService.logout(body.refreshToken)
-    }
+//    @PostMapping("/logout")
+//    fun logout(
+//        @RequestBody body: RefreshRequestDto
+//    ) {
+//        return authService.logout(body.refreshToken)
+//    }
 
 //    @PostMapping("/logout")
 //    fun logout(
