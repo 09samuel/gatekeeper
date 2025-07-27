@@ -23,6 +23,7 @@ class JwtService(
     private fun generateToken(
         userId: String,
         type: String,
+
         expiry: Long
     ): String {
         val now = Date()
